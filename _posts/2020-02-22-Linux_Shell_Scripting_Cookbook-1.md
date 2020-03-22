@@ -1,6 +1,6 @@
 ---
 layout: article
-tags: Linux
+tags: Shell
 title: Linux Shell脚本攻略1
 mathjax: true
 key: Shell
