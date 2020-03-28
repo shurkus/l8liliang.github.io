@@ -6,8 +6,6 @@ mathjax: true
 key: Shell
 ---
 
-# 一些对我来说新鲜的知识
-
 ## echo
 ```
 # 不换行
