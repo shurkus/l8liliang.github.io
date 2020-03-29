@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: Shell
-title: Linux Shell脚本攻略1
+title: Linux Shell脚本攻略 -- 小试牛刀
 mathjax: true
 key: Shell
 ---

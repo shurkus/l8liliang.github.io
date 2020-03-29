@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: Shell
-title: Linux Shell脚本攻略2
+title: Linux Shell脚本攻略 -- 命令之乐
 mathjax: true
 key: Shell
 ---
@@ -204,10 +204,10 @@ sort -bd unsorted.txt // -d表示以字典序排序
 ```
 # uniq -u 只显示一行
 # uniq -c 统计各行出现的次数
-# uniq -d找出重复的行
-# uniq -S指定跳过前N个字符
-# uniq -w指定用于比较多最大字符数
-# uniq -z生成由0值字节终止的输出
+# uniq -d 找出重复的行
+# uniq -S 指定跳过前N个字符
+# uniq -w 指定用于比较多最大字符数
+# uniq -z 生成由0值字节终止的输出
 ```
 
 ## mktemp
