@@ -26,7 +26,7 @@ titles:
 key: page-about
 ---
 
-<div class="hero hero--dark" style='height: 500px; background-image: url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1574313697163&di=4daf9d5fd997e67e4bcbab4f78d47d9f&imgtype=0&src=http%3A%2F%2Fb-ssl.duitang.com%2Fuploads%2Fitem%2F201301%2F18%2F20130118175938_CzsXy.jpeg");'>
+<div class="hero hero--dark" style='height: 500px; background-image: url("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1574313697163&di=4daf9d5fd997e67e4bcbab4f78d47d9f&imgtype=%20%20%20%200&src=http%3A%2F%2Fb-ssl.duitang.com%2Fuploads%2Fitem%2F201301%2F18%2F20130118175938_CzsXy.jpeg");'>
   <div class="hero__content">
     <h3>My Hero</h3>
     <!--p style='font-size:12px'>I have cat addiction.</p-->
