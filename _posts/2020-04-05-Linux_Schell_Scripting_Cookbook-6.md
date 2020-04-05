@@ -165,6 +165,8 @@ git log --pretty=oneline <filename>
 git diff <hashcode-before-right> <hashcode> <filename>
 //查看目标文件两个版本之间的差异
 
+git log $old_tag..$new_tag --oneline           // 打印连个tag之间的所有commit
+git log commit^..commit --oneline --name-only  // 打印两个commit之间修改的文件的名字
 ```
 
 ## 保存现场
