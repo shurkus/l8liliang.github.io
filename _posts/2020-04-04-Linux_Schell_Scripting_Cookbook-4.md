@@ -86,7 +86,8 @@ cut -c-5 filename
 
 ## sed (stream editor)
 ```
-# -i in place
+# -i in place，表示直接修改文件而不是只把修改后的内容打印到输出
+
 # 替换每行中模式首次匹配的内容
 sed 's/pattern/replace_string/' file
 
