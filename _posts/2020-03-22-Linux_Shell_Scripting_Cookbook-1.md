@@ -59,6 +59,15 @@ bogon:l8liliang.github.io liliang$ echo $UID
 501
 ```
 
+## source与./
+```
+source : 是在当前进程执行脚本
+./     : 是在子进程执行脚本
+
+执行source a.sh之后，a.sh里面定义的所有全局变量都能在当前shell或脚本访问到
+执行./a.sh之后，a.sh里面定义的所有全局变量不能在当前shell或脚本中访问到
+```
+
 ## 数学运算
 ```
 # let
