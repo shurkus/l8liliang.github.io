@@ -33,9 +33,9 @@ completion_queue 是需要释放的发送缓冲区列表
 ## 收包流程
 ```
 1、网卡收到数据包后，给CPU发送一个硬件中断
-2、中断处理程序，也就是驱动程序，根据包长度分配skb_buff，并且把包（帧）拷贝到skb_buff中。（如果设备使用DMA，驱动程序就只需要初始化一个指针，不需要拷贝）
-	a)如果是非NAPI设备，包会拷贝到对应的CPU的softnet_data.input_pkt_queue中。所有的非NAPI网卡公用这个相同的入口队列。
-	b)如果是NAPI设备，每个网卡有自己的队列。并且网卡的poll方法（该方法在net_device中定义，由下半部softirq调用）直接从网卡的环形缓冲区取数据。
+2、中断处理程序，也就是驱动程序，根据包长度分配skb_buff，并且把包（帧）拷贝到skb_buff中。（如果设备使用DMA，驱动程序只需要初始化一个指针，不需要拷贝）
+	a)如果是非NAPI设备，skb_buff会放到对应的CPU的softnet_data.input_pkt_queue中。所有的非NAPI网卡公用这个相同的入口队列。
+	b)如果是NAPI设备，每个网卡有自己的队列。并且网卡的poll方法（该方法在net_device中定义，由下半部softirq调用）直接从网卡的环形缓冲区(内存映射？)取数据。
 	c)input_pkt_queue队列的最大长度是300，如果超出这个长度，新的包就会被丢弃。
 3、中断处理程序，对一些skb_buff字段初始化，以便上层网络使用，比如skb_protocol
 4、中断处理程序，调度软中断NET_RX_SOFTIRQ，把自己加入cpu.softnet_data.poll_list中，并结束
@@ -53,7 +53,10 @@ completion_queue 是需要释放的发送缓冲区列表
 ```
 1、调用dev_queue_xmit函数
 2、如果没有qdisc队列规则，直接调用hard_start_xmit方法发送数据
-3、如果有qidsc队列规则，调用qidsc_run->qdis_-restart->hard_start_xmit
+3、如果有qidsc队列规则，调用qdisc_enqueue（把包加入网卡队列 内存映射？）->
+	qidsc_run（不停的调用qdisc_restart，直到队列停止）->
+	qdisc_restart（从队列取包）->
+	hard_start_xmit（由网卡发送）
 4、hard_start_xmit可能成功，也可能失败，这是因为当网卡的内存剩余不足一个mtu大小时，驱动会调用netif_stop_queue停止出口队列。
    后面当内存可用时，设备会产生一个中断，中断处理程序通过调用netif_wake_queue恢复出口队列。
    失败了也没关系，因为后续软中断会被触发，继续发送。
