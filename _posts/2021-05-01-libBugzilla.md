@@ -16,8 +16,8 @@ pip install python-bugzilla
 ## API
 ```
 # api address
-BZ = 'https://bugzilla.redhat.com'
-BZ_API = 'https://bugzilla.redhat.com/xmlrpc.cgi'
+BZ = 'https://bugzilla.xxx.com'
+BZ_API = 'https://bugzilla.xxx.com/xmlrpc.cgi'
 
 # create bugzilla
 bzapi = bugzilla.Bugzilla(BZ_API,user=user,password=pwd)
@@ -60,8 +60,8 @@ from colorama import Fore
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-BZ = 'https://bugzilla.redhat.com'
-BZ_API = 'https://bugzilla.redhat.com/xmlrpc.cgi'
+BZ = 'https://bugzilla.xxx.com'
+BZ_API = 'https://bugzilla.xxx.com/xmlrpc.cgi'
 
 def printLog(*messages):
         print_log("log",*messages)

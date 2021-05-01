@@ -173,16 +173,16 @@ git log $old_tag..$new_tag --oneline           // 打印两个tag之间的所有
 
 # 比如下面的log
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph
-* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
-*   82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [xxx] kernel-4.18.0-304.7.el8
+*   82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
 |\  
-| * 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+| * 6d5f2a0 xxx/configs/editconfig: Add support for a bugzilla entry
 *   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
 
 # ab051fe 和 6d5f2a0 属于两个不同的branch，找他们两个之间的commit，会列出很多其它commit，得不到我们想要的结果
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log 6d5f2a0..ab051fe --oneline --decorate=full --graph
-* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
-* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [xxx] kernel-4.18.0-304.7.el8
+* 82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
 *   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
 |\
 | * 3c9607c tools/power turbostat: Revert "[tools] tools/power turbostat: Enable accumulate RAPL display"
@@ -194,18 +194,18 @@ git log $old_tag..$new_tag --oneline           // 打印两个tag之间的所有
 
 # ab051fe 和 047c499 属于一个分支，就可以得到想要的结果
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log  047c499..ab051fe --oneline --decorate=full --graph
-* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
-* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
-* 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [xxx] kernel-4.18.0-304.7.el8
+* 82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
+* 6d5f2a0 xxx/configs/editconfig: Add support for a bugzilla entry
 
 
 # --ancestry-path
 # 看一下kernel-4.18.0-304.6.el8 和kernel-4.18.0-304.7.el8 之间的commit
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.5.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph
-* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
-*   82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [xxx] kernel-4.18.0-304.7.el8
+*   82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
 |\
-| * 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+| * 6d5f2a0 xxx/configs/editconfig: Add support for a bugzilla entry
 *   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
 |\
 | * 3c9607c tools/power turbostat: Revert "[tools] tools/power turbostat: Enable accumulate RAPL display"
@@ -247,13 +247,13 @@ git log $old_tag..$new_tag --oneline           // 打印两个tag之间的所有
 | * 86dcb22 PCI/MSI: Forward MSI-X error code in pci_alloc_irq_vectors_affinity()
 | * e245b2c PCI: Fix pci_cfg_wait queue locking problem
 | * fc33a4b PCI/ASPM: Add missing newline in sysfs 'policy'
-* 8974413 (tag: refs/tags/kernel-4.18.0-304.6.el8) [redhat] kernel-4.18.0-304.6.el8
+* 8974413 (tag: refs/tags/kernel-4.18.0-304.6.el8) [xxx] kernel-4.18.0-304.6.el8
 
 # --ancestry-path 表示只有是两个commit直接路径上的commit才会列出来，
 # 就是说上图中左边那条线中用*标识的commit列出来了，右边那条线中的commit都没列出来，因为拐弯了。。
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph --ancestry-path
-* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
-* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [xxx] kernel-4.18.0-304.7.el8
+* 82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
 * 047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
 * 7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
 * 5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
@@ -268,7 +268,7 @@ git log $old_tag..$new_tag --oneline           // 打印两个tag之间的所有
 # --merges只列出merger的时候创建的commit
 # --no-merges表示不要merge创建的commit
 [liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph --merges
-* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* 82b447c Merge: xxx/configs/editconfig: Add support for a bugzilla entry
 * 047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
 * 7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
 * 5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
