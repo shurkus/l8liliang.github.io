@@ -165,8 +165,120 @@ git log --pretty=oneline <filename>
 git diff <hashcode-before-right> <hashcode> <filename>
 //查看目标文件两个版本之间的差异
 
-git log $old_tag..$new_tag --oneline           // 打印连个tag之间的所有commit
-git log commit^..commit --oneline --name-only  // 打印两个commit之间修改的文件的名字
+git log commit^..commit --oneline --name-only  // 打印两个commit之间修改的文件
+git log commit^..commit --oneline --name-only --ancestry-path  //
+git log $old_tag..$new_tag --oneline           // 打印两个tag之间的所有commit。
+                                               // 注意两个tag要属于同一个branch，否则列出的commit不正确。
+                                               // 也就是说不能分叉。
+
+# 比如下面的log
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
+*   82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+|\  
+| * 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+*   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
+
+# ab051fe 和 6d5f2a0 属于两个不同的branch，找他们两个之间的commit，会列出很多其它commit，得不到我们想要的结果
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log 6d5f2a0..ab051fe --oneline --decorate=full --graph
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
+* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+*   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
+|\
+| * 3c9607c tools/power turbostat: Revert "[tools] tools/power turbostat: Enable accumulate RAPL display"
+*   7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+|\
+| * 8d835e9 mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+*   5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
+
+
+# ab051fe 和 047c499 属于一个分支，就可以得到想要的结果
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log  047c499..ab051fe --oneline --decorate=full --graph
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
+* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+
+
+# --ancestry-path
+# 看一下kernel-4.18.0-304.6.el8 和kernel-4.18.0-304.7.el8 之间的commit
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.5.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
+*   82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+|\
+| * 6d5f2a0 redhat/configs/editconfig: Add support for a bugzilla entry
+*   047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
+|\
+| * 3c9607c tools/power turbostat: Revert "[tools] tools/power turbostat: Enable accumulate RAPL display"
+*   7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+|\
+| * 8d835e9 mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+*   5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
+|\
+| * e147587 net/mlx5e: Allow to match on MPLS parameters only for MPLS over UDP
+| * 4f79e0c net/mlx5e: Reject tc rules which redirect from a VF to itself
+| * 51df183 net/mlx5: CT: Add support for matching on ct_state inv and rel flags
+*   ff150f3 Merge: net: openvswitch: backport upstream OVS kmod changes for phase I
+|\
+| * 0674350 net: openvswitch: add log message for error case
+| * d600ac1 net: openvswitch: conntrack: simplify the return expression of ovs_ct_limit_get_default_limit()
+| * 7f1893a net: openvswitch: Be liberal in tcp conntrack.
+| * 5af22fd netfilter: conntrack: tcp: only close if RST matches exact sequence
+| * e95dbc1 openvswitch: Use IS_ERR instead of IS_ERR_OR_NULL
+| * e7d7e77 net: openvswitch: Fix kerneldoc warnings
+| * 103f6f5 net: openvswitch: remove unnecessary ASSERT_OVSL in ovs_vport_del()
+*   d91a143 Merge: cifs: revalidate mapping when we open files for SMB1 POSIX
+|\
+| * de3c3a7 cifs: revalidate mapping when we open files for SMB1 POSIX
+*   a44aa02 Merge: Revert "vfs: Allow userns root to call mknod on owned filesystems."
+|\
+| * 05ecbb5 Revert "vfs: Allow userns root to call mknod on owned filesystems."
+*   53aa971 Merge: mfd: intel-lpss: Add Intel Alder Lake PCH-S PCI IDs
+|\
+| * cf1634f mfd: intel-lpss: Add Intel Alder Lake PCH-S PCI IDs
+*   4dadc8d Merge: nvme: retrigger ANA log update if group descriptor isn't found
+|\
+| * 458c2a6 nvme: retrigger ANA log update if group descriptor isn't found
+*   b50cc1d Merge: locking/qrwlock: Fix ordering in queued_write_lock_slowpath()
+|\
+| * 5b4ca32 locking/qrwlock: Fix ordering in queued_write_lock_slowpath()
+*   042ba38 Merge: Update kernel's PCI subsystem to v5.9
+|\
+| * 775f79d PCI: switchtec: Add missing __iomem tag to fix sparse warnings
+| * 86dcb22 PCI/MSI: Forward MSI-X error code in pci_alloc_irq_vectors_affinity()
+| * e245b2c PCI: Fix pci_cfg_wait queue locking problem
+| * fc33a4b PCI/ASPM: Add missing newline in sysfs 'policy'
+* 8974413 (tag: refs/tags/kernel-4.18.0-304.6.el8) [redhat] kernel-4.18.0-304.6.el8
+
+# --ancestry-path 表示只有是两个commit直接路径上的commit才会列出来，
+# 就是说上图中左边那条线中用*标识的commit列出来了，右边那条线中的commit都没列出来，因为拐弯了。。
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph --ancestry-path
+* ab051fe (tag: refs/tags/kernel-4.18.0-304.7.el8) [redhat] kernel-4.18.0-304.7.el8
+* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* 047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
+* 7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+* 5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
+* ff150f3 Merge: net: openvswitch: backport upstream OVS kmod changes for phase I
+* d91a143 Merge: cifs: revalidate mapping when we open files for SMB1 POSIX
+* a44aa02 Merge: Revert "vfs: Allow userns root to call mknod on owned filesystems."
+* 53aa971 Merge: mfd: intel-lpss: Add Intel Alder Lake PCH-S PCI IDs
+* 4dadc8d Merge: nvme: retrigger ANA log update if group descriptor isn't found
+* b50cc1d Merge: locking/qrwlock: Fix ordering in queued_write_lock_slowpath()
+* 042ba38 Merge: Update kernel's PCI subsystem to v5.9
+
+# --merges只列出merger的时候创建的commit
+# --no-merges表示不要merge创建的commit
+[liliang@dhcp-128-17 /home/gitlab/rhel-8]$ git log kernel-4.18.0-304.6.el8..kernel-4.18.0-304.7.el8 --oneline --decorate=full --graph --merges
+* 82b447c Merge: redhat/configs/editconfig: Add support for a bugzilla entry
+* 047c499 Merge: tools/power turbostat: Revert "tools/power turbostat: Enable accumulate RAPL display"
+* 7ccb9f9 Merge: mwifiex: Fix possible buffer overflows in mwifiex_cmd_802_11_ad_hoc_start
+* 5aea20b Merge: mlx5: Bug fixes for z-stream 08-Apr-2021
+* ff150f3 Merge: net: openvswitch: backport upstream OVS kmod changes for phase I
+* d91a143 Merge: cifs: revalidate mapping when we open files for SMB1 POSIX
+* a44aa02 Merge: Revert "vfs: Allow userns root to call mknod on owned filesystems."
+* 53aa971 Merge: mfd: intel-lpss: Add Intel Alder Lake PCH-S PCI IDs
+* 4dadc8d Merge: nvme: retrigger ANA log update if group descriptor isn't found
+* b50cc1d Merge: locking/qrwlock: Fix ordering in queued_write_lock_slowpath()
+* 042ba38 Merge: Update kernel's PCI subsystem to v5.9
 ```
 
 ## 保存现场
@@ -197,6 +309,7 @@ git push origin master                   //把master分支的变化更新到远�
 git push origin dev                      //把dev分支的变化更新到远程仓库，注意需要事先关联上。
 git checkout -b dev origin/dev           //clone后，创建远程origin的dev分支到本地
 git branch --set-upstream dev origin/dev //指定本地dev分支与远程origin/dev分支的链接
+git push --set-upstream origin feature2  //把本地分支feature2推送到远程并关联上
 
 总结：
 1)查看远程库信息，使用git remote -v；
@@ -269,3 +382,22 @@ git format-patch -2 b1     //为b1上最近两次变更打patch，patch包含b1�
 
 ## 历史命令记录
 Git提供了一个命令git reflog用来记录你的每一次命令
+
+## 生成密钥
+```
+ssh-keygen -t rsa -C xxx@xxx.com
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+```
+
+## 保存密码
+```
+# 查看系统支持的helper
+git help -a | grep credential
+# 查看当前的helper
+git config credential.helper
+# 使用 某个helper
+git config --global credential.helper store
+# 删除缓存密码
+git credential-manager uninstall
+```
