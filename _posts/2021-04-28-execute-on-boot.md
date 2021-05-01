@@ -20,8 +20,6 @@ pgrep ci-manager.sh || { cd /var/www/html/job_scheduler/ci; ./ci-manager.sh &}
 [root@dhcp-128-17 ~]# cat /etc/rc.d/rc.local
 #!/bin/sh -e
 
-# /usr/bin/redhat-internal-ddns-client.sh update &
-
 echo 111 >> /home/lll
 su - liliang -l -c "start_job_scheduler.sh"
 
