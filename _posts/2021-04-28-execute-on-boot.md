@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: Linux
-title: execute on boot
+title: Execute Script On Boot
 mathjax: true
 key: Linux
 ---

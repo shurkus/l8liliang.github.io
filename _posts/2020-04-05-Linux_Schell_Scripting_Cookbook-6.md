@@ -394,7 +394,7 @@ ssh-add ~/.ssh/id_rsa
 ```
 # 查看系统支持的helper
 git help -a | grep credential
-# 查看当前的helper
+# 查看当前使用的helper
 git config credential.helper
 # 使用 某个helper
 git config --global credential.helper store
