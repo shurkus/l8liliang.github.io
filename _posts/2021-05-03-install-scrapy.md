@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: Python
-title: Install Apache+PHP+MySql 
+title: Install Scrapy
 mathjax: true
 key: Linux
 ---
