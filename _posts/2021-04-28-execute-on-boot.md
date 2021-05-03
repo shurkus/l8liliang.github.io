@@ -6,7 +6,7 @@ mathjax: true
 key: Linux
 ---
 
-## Namespace
+## Steps
 ```
 1, create your srcipt under /usr/local/bin
 [root@dhcp-128-17 ~]# cat /usr/local/bin/start_job_scheduler.sh
