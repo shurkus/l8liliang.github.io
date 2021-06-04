@@ -162,8 +162,6 @@ i am vm1
 i am vm2
 [root@localhost ~]# curl 172.16.255.62:8000
 i am vm2
-[root@localhost ~]# curl 172.16.255.62:8000
-i am vm1
 
 # 从vm1和vm2发起请求是不通的
 # 这是因为只能对客户端的逻辑交换机而不是服务器的逻辑交换机应用负载平衡
