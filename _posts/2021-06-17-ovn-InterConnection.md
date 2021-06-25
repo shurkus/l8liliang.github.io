@@ -380,12 +380,17 @@ ovn-nbctl lrp-set-gateway-chassis lr1-ts1 dfe51fb0-0c76-437c-ad95-709b98998b4f
 alias ovn-ctl="/usr/share/ovn/scripts/ovn-ctl"
 #ovn-ctl --db-ic-nb-create-insecure-remote=yes \
 #          --db-ic-sb-create-insecure-remote=yes start_ic_ovsdb
+
+# set az name
 ovn-nbctl set NB_Global . name=az2
 
+# connecto to global ovsdb
 ovn-ctl --ovn-ic-nb-db=tcp:177.1.1.1:6645 --ovn-ic-sb-db=tcp:177.1.1.1:6646 --ovn-northd-nb-db=tcp:177.1.1.2:6641 --ovn-northd-sb-db=tcp:177.1.1.2:6642 start_ic
 
+# enable me as gateway chassis
 ovs-vsctl set open_vswitch . external_ids:ovn-is-interconn=true
 
+# connect gateway router to transit switch
 ovn-nbctl lrp-add lr2 lr2-ts1 aa:aa:aa:aa:aa:02 169.254.100.2/24
 ovn-nbctl lsp-add ts1 ts1-lr2 -- \
         lsp-set-addresses ts1-lr2 router -- \
@@ -393,6 +398,7 @@ ovn-nbctl lsp-add ts1 ts1-lr2 -- \
         lsp-set-options ts1-lr2 router-port=lr2-ts1
 
 
+# setup distributed gateway port
 ovn-nbctl lrp-set-gateway-chassis lr2-ts1 68b0888a-06d3-4cb7-8da3-f647f69c83af
 ```
 
