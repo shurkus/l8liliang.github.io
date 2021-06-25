@@ -9,7 +9,7 @@ key: Linux
 [redhat doc](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/virtualization_deployment_and_administration_guide/sect-kvm_live_migration-shared_storage_example_nfs_for_a_simple_migration)
 {:.info}
 
-## setup on central mode
+## setup on central node
 
 ```
 # stop firewalld selinux...
