@@ -35,12 +35,34 @@ The software (NIC's driver in the kernel case) is allocating memory for the ring
 TX packets will be created in this memory by the software and will be read and transmitted by the NIC (usually after the software signals the NIC it should start transmitting). 
 RX packets will be written to this memory by the NIC and will be read and processed by the software (usually after an interrupt is issued to signal there's work).
 
+> so the ring buffer is allocated in memory rather than NIC storage, and NIC knows where the rings are. 
+> As I know the ring format is hardware-specific and there is some register in NIC of ring location, so the NIC will just find the ring and read it according to its own format, then it will find the packets? 
+Yes, the format of the data in the rings should be consistent with the API to the NIC. 
+Each vendor usually have a PRM (Programmer Reference Manual) which explains how the data should be constrcuted. 
+
 Packet Recevie Sequence:
 1.Network Device Receives Frames and these frames are transferred to the DMA ring buffer.
 2.Now After making this transfer an interrupt is raised to let the CPU know that the transfer has been made.
 3.In the interrupt handler routine the CPU transfers the data from the DMA ring buffer to the CPU network input queue for later time.
 4.Bottom Half of the handler routine is to process the packets from the CPU network input queue and pass it to the appropriate layers.
 
+```
+
+### What are the Hardware Rx/Tx Queue in Ethernet controller
+```
+The ring is the representation of the device RX/TX queue. It is used for data transfer between the kernel stack and the device.
+
+https://stackoverflow.com/questions/58658739/what-are-the-hardware-rx-tx-queue-in-ethernet-controller
+
+The rx/tx queues contain DMA descriptors for incoming and outgoing packets.
+
+NICs expose multiple circular buffers called queues or rings to transfer packets. 
+The simplest setup uses only one receive and one transmit queue. 
+Multiple transmit queues are merged on the NIC, incoming traffic is split according to filters or a hashing algorithm if multiple receive queues are configured. 
+Both receive and transmit rings work in a similar way: the driver programs a physical base address and the size of the ring. 
+It then fills the memory area with DMA descriptors, i.e., pointers to physical addresses where the packet data is stored with some metadata. 
+Sending and receiving packets is done by passing ownership of the DMA descriptors between driver and hardware via a head and a tail pointer. 
+The driver controls the tail, the hardware the head. Both pointers are stored in device registers accessible via MMIO.
 ```
 
 ### The NIC ring buffer
@@ -110,11 +132,11 @@ number of incoming interrupts as a counter value:
 
 网卡的中断号在系统启动或者网卡加载的时候分配，每个rx queue和tx queue使用一个中断号。
 
-rx queue和tx queue是在ring buffers上层，每个queue对应一个中断号，这样就可以利用多个中断和多个CPU并发处理ring buffers的数据。
+rx queue和tx queue就是ring buffers，一个queue对应一个ring buffer，
+每个queue对应一个中断号，这样就可以利用多个中断和多个CPU并发处理ring buffers的数据。
 可以使用ethtool -L设置网卡queue数量。
 Queues are allocated when the NIC driver module is loaded. In some cases, the number of
-queues can be dynamically allocated online using the ethtool -L command. The above device
-has 4 RX queues and one TX queue.
+queues can be dynamically allocated online using the ethtool -L command.
 
 ```
 
