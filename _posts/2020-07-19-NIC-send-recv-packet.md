@@ -32,20 +32,28 @@ completion_queue 是需要释放的发送缓冲区列表
 
 ## 收包流程
 ```
-1、网卡收到数据包后，给CPU发送一个硬件中断
-2、中断处理程序，也就是驱动程序，根据包长度分配skb_buff，并且把包（帧）拷贝到skb_buff中。（如果设备使用DMA，驱动程序只需要初始化一个指针，不需要拷贝）
+https://stackoverflow.com/questions/43696997/ring-buffers-and-dma
+
+Network Device Receives Frames and these frames are transferred to the DMA ring buffer.
+Now After making this transfer an interrupt is raised to let the CPU know that the transfer has been made.
+In the interrupt handler routine the CPU transfers the data from the DMA ring buffer to the CPU network input queue for later time.
+Bottom Half of the handler routine is to process the packets from the CPU network input queue and pass it to the appropriate layers.
+
+1、网卡收到数据包后，通过DMA把报文发送到ring buffer（DMA ring buffer = NIC RX/RXring buffer）
+2、网卡给CPU发送一个硬件中断
+3、中断处理程序，也就是驱动程序，根据包长度分配skb_buff，并且把包（帧）拷贝到skb_buff中。（如果设备使用DMA，驱动程序只需要初始化一个指针，不需要拷贝。如果不支持DMA就多一次copy？）
 	a)如果是非NAPI设备，skb_buff会放到对应的CPU的softnet_data.input_pkt_queue中。所有的非NAPI网卡公用这个相同的入口队列。
 	b)如果是NAPI设备，每个网卡有自己的队列。并且网卡的poll方法（该方法在net_device中定义，由下半部softirq调用）直接从网卡的环形缓冲区(内存映射？)取数据。
 	c)input_pkt_queue队列的最大长度是300，如果超出这个长度，新的包就会被丢弃。
-3、中断处理程序，对一些skb_buff字段初始化，以便上层网络使用，比如skb_protocol
-4、中断处理程序，调度软中断NET_RX_SOFTIRQ，把自己加入cpu.softnet_data.poll_list中，并结束
-5、当软中断NET_RX_SOFTIRQ被执行时，net_rx_action函数会取出cpu.softnet_data.poll_list中的第一个设备，执行该设备的poll方法（这里只讨论NAPI）
-6、poll方法大概会调用netif_receive_skb方法
-7、netif_receive_skb主要完成三个任务
+4、中断处理程序，对一些skb_buff字段初始化，以便上层网络使用，比如skb_protocol
+5、中断处理程序，调度软中断NET_RX_SOFTIRQ，把自己加入cpu.softnet_data.poll_list中，并结束
+6、当软中断NET_RX_SOFTIRQ被执行时，net_rx_action函数会取出cpu.softnet_data.poll_list中的第一个设备，执行该设备的poll方法（这里只讨论NAPI）
+7、poll方法大概会调用netif_receive_skb方法
+8、netif_receive_skb主要完成三个任务
 	a)把包的副本发送给每个分流器
 	b)把包的副本发送给skb->protocol所关联的协议处理函数
 	c)一些其它功能，比如bridge，bonding
-8、三层协议最后可以转发、丢弃、接收这个报文。
+9、三层协议最后可以转发、丢弃、接收这个报文。
 
 ```
 

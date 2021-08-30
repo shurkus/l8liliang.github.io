@@ -18,8 +18,32 @@ key: Linux
 
 ## PACKET RECEPTION IN THE LINUX KERNEL
 
-### The NIC ring buffer
+###What is the relationship of DMA ring buffer and TX/RX ring for a network card?
+```
+https://stackoverflow.com/questions/47450231/what-is-the-relationship-of-dma-ring-buffer-and-tx-rx-ring-for-a-network-card
 
+Short Answer: These are the same.
+
+In this article it says:
+	A variant of the asynchronous approach is often seen with network cards. 
+	These cards often expect to see a circular buffer (often called a DMA ring buffer) established in memory shared with the processor; 
+	each incoming packet is placed in the next available buffer in the ring, and an interrupt is signaled. 
+	The driver then passes the network packets to the rest of the kernel, and places a new DMA buffer in the ring.
+
+The DMA ring allows the NIC to directly access the memory used by the software. 
+The software (NIC's driver in the kernel case) is allocating memory for the rings and then mapping it as DMA memory, so the NIC would know it may access it. 
+TX packets will be created in this memory by the software and will be read and transmitted by the NIC (usually after the software signals the NIC it should start transmitting). 
+RX packets will be written to this memory by the NIC and will be read and processed by the software (usually after an interrupt is issued to signal there's work).
+
+Packet Recevie Sequence:
+1.Network Device Receives Frames and these frames are transferred to the DMA ring buffer.
+2.Now After making this transfer an interrupt is raised to let the CPU know that the transfer has been made.
+3.In the interrupt handler routine the CPU transfers the data from the DMA ring buffer to the CPU network input queue for later time.
+4.Bottom Half of the handler routine is to process the packets from the CPU network input queue and pass it to the appropriate layers.
+
+```
+
+### The NIC ring buffer
 ```
 Receive ring buffers are shared between the device driver and NIC. 
 The card assigns a transmit(TX) and receive (RX) ring buffer. 
@@ -49,8 +73,10 @@ ring buffers是被NIC和driver共享的。
 
 RX ring buffuers是用来存储接收到的报文，等待driver处理（拷贝到内核skb中过）。
 
-driver通常通过SoftIRQs处理ring buffers中的报文，把它们拷贝到内核skb中。然后再由内核协议栈处理并送到应用程序。
-在内核协议栈处理之前，这些报文会放到CPU队列中，每个CPU有一个这样的队列。如果CPU队列满了，报文也会被drop掉。
+driver通常通过SoftIRQs真正的处理ring buffers中的报文，把它们拷贝到内核skb中(skb是上半部创建的，所以这个拷贝是硬中断做的)，
+然后再由内核协议栈处理并送到应用程序。
+在内核协议栈处理之前，这些报文会放到CPU队列中(也是硬中断把报文放入CPU队列的,等待软中断处理，当然软中断最终会把报文发送给内核协议栈处理)，
+每个CPU有一个这样的队列。如果CPU队列满了，报文也会被drop掉。
 可以通过设置netdev_max_backlog调整CPU队列长度。
 
 TX ring buffers用来存储带等待发送到网线上的数据。
@@ -78,8 +104,8 @@ interrupt handler as to which NIC/queue the interrupt is coming from. The column
 number of incoming interrupts as a counter value:
 
 硬中断也叫上半部中断。
-当网卡收到报文后，会把报文通过DMA方式拷贝到内核buffers中（应该就是ring buffers），然后网卡会触发一个硬中断。
-硬中断只做少量的处理，因为硬中断占用CPU资源比较多，尤其是使用kernel lock的时候。
+当网卡收到报文后，会把报文通过DMA方式拷贝到ring buffers，然后网卡会触发一个硬中断。
+硬中断只做少量的处理(分配skb，设置skb protocol，把报文放入CPU队列)，因为硬中断占用CPU资源比较多（会关闭CPU中断），尤其是使用kernel lock的时候。
 所以硬中断会把主要工作留给软中断处理。
 
 网卡的中断号在系统启动或者网卡加载的时候分配，每个rx queue和tx queue使用一个中断号。
@@ -100,7 +126,7 @@ purpose is to drain the network adapter receive ring buffers. These routines run
 ksoftirqd/cpu-number processes and call driver-specific code functions. They can be seen
 in process monitoring tools such as ps and top.
 
-软中断又叫下半部中断，是一种kernel进程。他的目的是从ring buffers取数据。
+软中断又叫下半部中断，是一种kernel进程。他的目的是处理ring buffers中的数据。
 ```
 
 ### NAPI Polling
