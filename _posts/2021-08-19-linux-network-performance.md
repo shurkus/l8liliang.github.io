@@ -18,7 +18,7 @@ key: Linux
 
 ## PACKET RECEPTION IN THE LINUX KERNEL
 
-###What is the relationship of DMA ring buffer and TX/RX ring for a network card?
+### What is the relationship of DMA ring buffer and TX/RX ring for a network card?
 ```
 https://stackoverflow.com/questions/47450231/what-is-the-relationship-of-dma-ring-buffer-and-tx-rx-ring-for-a-network-card
 
