@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: OVN
-title: OVN - Loadbalance HealthCheck
+title: OVN - Loadbalancer Health Check
 mathjax: true
 key: Linux
 ---
