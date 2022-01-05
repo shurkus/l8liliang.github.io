@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: IPv6
-title: ipv6 address
+title: IPv6 Address
 mathjax: true
 key: Linux
 ---
@@ -46,12 +46,6 @@ ipv6-address/prefix-length(地址/前缀长度)
            ｜--未指定地址 ::/128
            ｜
            ｜--嵌入IPv4地址的IPv6地址 ::/80
-
-多播地址--------公认多播 ff00::/12
-           ｜ 
-           ｜--临时多播 ff10::/12
-           ｜
-           ｜--请求节点多播 ff02:0:0:0:0:1:ff00::/104
 
 
 IPv6地址开头的位      ｜  IPv6地址空间  ｜  首个16位组的范围  ｜  分配情况              ｜ 地址空间的占比情况  ｜
