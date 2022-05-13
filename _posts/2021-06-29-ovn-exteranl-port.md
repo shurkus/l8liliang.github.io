@@ -315,5 +315,10 @@ ovn-nbctl lsp-set-dhcpv4-options ls1-lp-ext1 ${dhcp_options1}
 
 ovn-nbctl lsp-set-options ls1-lp-ext1 requested-chassis=hv0
 ovn-nbctl lsp-set-options ls1-lp-ext1 requested-chassis=3b90fffc-7fd5-43ff-acdc-d19575b5d116
+
+v0的mac和ovn指定的external port ls1-lp-ext1 mac 一样，
+并且v0可以通过localnet接入ovn网络.
+当v0的dhcp请求发送到ovn网络之后，
+ovn发现有一个external port ls1-lp-ext1的mac和v0 mac匹配，所以可以服务该dhcp请求。
 ```
 
