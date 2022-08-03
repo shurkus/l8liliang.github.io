@@ -243,7 +243,7 @@ echo {a..z} {A..Z}
 #当你打开终端窗口时才会创建shell，但这个shell也不是登录shell
 
 # 交互式shell（X11终端会话）或ssh执行单条命令（ssh 192.168.1.1 ls /tmp)是，会执行：
-/etc/bash.bashrc,$HOME/.bashrc
+/etc/bashrc,$HOME/.bashrc
 
 # 执行某个脚本时，不会执行任何配置文件，除非你指定了环境变量BASH_ENV，它才会执行你指定的BASH_ENV文件
 export BASH_ENV=~/.bashrc
