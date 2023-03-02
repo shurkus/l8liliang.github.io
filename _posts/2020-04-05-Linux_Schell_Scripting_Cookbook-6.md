@@ -401,3 +401,42 @@ git config --global credential.helper store
 # 删除缓存密码
 git credential-manager uninstall
 ```
+
+## format-patch
+```
+# from https://blog.csdn.net/qq_42001737/article/details/119891066
+打包最近的一个patch：git format-patch HEAD^，有几个^就打包几个patch的内容；或git format-patch -n
+打包版本n1与n2之间的patch：git format-patch -n1 -n2
+某次提交以后的所有patch：git format-patch xxx，xxx是commit名
+某次提交(含)之前的几次提交：git format-patch -n xxx，xxx是commit名
+某两次提交之间的所有patch：git format-patch xxx..xxx，xxx是commit名
+将所有patch输出到一个指定位置的指定文件git format-patch xxx --stdout > xxx.patch
+```
+## send-email
+```
+# from https://blog.csdn.net/jjw97_5/article/details/44308049
+
+# 配置你的名字和Email地址
+git config --global user.name "My Name"
+git config --global user.email "myemail@example.com"
+
+# 配置Mail发送选项
+git config --global sendemail.smtpencryption tls
+git config --global sendemail.smtpserver mail.messagingengine.com
+git config --global sendemail.smtpuser tanuk@fastmail.fm
+git config --global sendemail.smtpserverport 587
+git config --global sendemail.smtppass hackme
+
+# 配置默认的目的地址
+git config sendemail.to pulseaudio-discuss@lists.freedesktop.org
+
+# 避免发送邮件给你自己
+git config --global sendemail.suppresscc self
+
+# 在当前的分支发送最新的commit:
+git send-email -1
+# 发送其他的commit:
+git send-email -1 <commit reference>
+#Sending the last 10 commits in the current branch:
+git send-email -10 --cover-letter --annotate
+```
