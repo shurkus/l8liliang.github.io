@@ -468,6 +468,19 @@ echo total: $total_bw
 ### irqbalance  
 如果irqbalance效果不好，可以自己设置中断亲和
 ```
+# cat /proc/irq/211/smp_affinity
+00020000,00000000
+# 从右向左，每一位代表一个cpu，cpu序号从0开始。比如0000,0020代表cpu5
+# 修改 affinigy
+[root@moon 44]# echo f0 > smp_affinity
+[root@moon 44]# cat smp_affinity
+000000f0
+
+# cat /proc/irq/211/smp_affinity_list 
+49
+这里面是cpu的列表，通过这个文件修改比较方便
+# echo 1024-1031 > smp_affinity_list
+
 calculate_cpu_affinity_value()
 {
 	local cpu_index=$1
