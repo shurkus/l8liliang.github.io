@@ -46,4 +46,7 @@ Uses either the TCP or UDP protocols. GRO is more rigorous than LRO when resegme
 ```
 
 
-
+## bond+ vlan
+```
+bond.3 tso can't be changed independently
+```
