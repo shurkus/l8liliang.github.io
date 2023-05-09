@@ -33,6 +33,11 @@ git commit -s /* -s：自动在commit中添加Signed-off-by行 */
 
 # generate patch
 git  format-patch  --subject-prefix='PATCH'  -1
+git format-patch -n --subject-prefix="PATCH net" -1 
+    -n, --numbered
+           Name output in [PATCH n/m] format, even with a single patch.
+    Extract three topmost commits from the current branch and format them as e-mailable patches:
+           $ git format-patch -3
 
 a.获取文件作者：
 git blame [filename] 查看文件的每一行作者是谁
@@ -53,6 +58,7 @@ git send-email --to alex.williamson@redhat.com \
 -cc cohuck@redhat.com \
 -cc kvm@vger.kernel.org \
 -cc linux-kernel@vger.kernel.org
+git send-email --to "netdev@vger.kernel.org" --cc "liali@redhat.com" --cc "j.vosburgh@gmail.com" --cc razor@blackwall.org 0001-selftests-bonding-delete-unnecessary-line.patch
 
 # 静静的等待维护者的邮件通知吧，一般几天之内就会回复邮件然后表示Apllied，Thanks或告知预计要合入到下一版本的如linux-5.18，有时第二天就回复一般是patch有问题。
 #如果patch有问题，需要回复邮件说明疑问，或直接按maintainer的要求修改补丁变成V2版本再次提交。再次提交V2版本需要注意在补丁说明中添加v1->v2的变化（patch中---分隔符之后）：

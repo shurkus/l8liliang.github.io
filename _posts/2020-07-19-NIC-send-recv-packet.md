@@ -75,6 +75,6 @@ Bottom Half of the handler routine is to process the packets from the CPU networ
    a)free_skb释放已发送完成的缓冲区
    b)执行qdisc_run->qdisc_restart->hard_start_xmit发送报文，会不停的发送，直到驱动通过netif_stop_queue停止出口队列
 
-注意：出口队列停止后应该能在一定的时间之内恢复，看门口定时器用于监控设备是否在给定时间内恢复，如果不能恢复会调用驱动程序提供的tx_timeout函数。
+注意：出口队列停止后应该能在一定的时间之内恢复，看门狗定时器用于监控设备是否在给定时间内恢复，如果不能恢复会调用驱动程序提供的tx_timeout函数。
       该函数会复位网卡，然后以netif_wake_queue重启接口队列。
 ```
