@@ -13,16 +13,18 @@ key: Linux
 
 ```
 NIC tso and bond tso can take effect respectively
-But if bond tso is off, NIC tso can take effect.
+But if bond tso is off, NIC tso can't take effect.
 Bond doesnt propagate conf to slaves.
 
 Didn't see GSO take effect on NIC and bond. GSO is a software implementation of tso.
 Bond doesnt propagate conf to slaves.
 
 NIC gro can take effect. But no difference when bond GRO is on versus off.
+GRO is unimplemented for bonding
 Bond doesnt propagate conf to slaves.
 
-NIC lro can take effect.
+NIC lro can take effect. But no difference when bond GRO is on versus off.
+LRO is unimplemented for bonding
 Bond propagate lro off to slaves, but doesn't propagate lro on.
 
 8.10. NIC Offloads
