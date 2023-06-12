@@ -688,6 +688,18 @@ to be increased.
 # sysctl -w net.core.netdev_max_backlog=X
 ```
 
+### MultiQueue
+```
+ethtool -L
+ethtool -l
+ethtool [ FLAGS ] -L|--set-channels DEVNAME     Set Channels
+       [ rx N ]
+       [ tx N ]
+       [ other N ]
+       [ combined N ]
+
+```
+
 ### Adapter RX and TX Buffer Tuning
 ```
 Adapter buffer defaults are commonly set to a smaller size than the maximum. Often, increasing
