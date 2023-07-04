@@ -338,6 +338,7 @@ git tag -s <tagname> -m "blablabla..."可以用PGP签名标签；
 ```
 
 ## 更新github fork的别人的repo
+### way1
 ```
 首先要先确定一下是否建立了主repo的远程源：
 git remote -v
@@ -349,6 +350,18 @@ git remote -v
 git fetch upstream
 git merge upstream/master
 ```
+### way2
+```
+(one time) add the original/upstream repo in local copy of your fork
+git remote add upstream git@gitlab.com:redhat/centos-stream/tests/kernel/kernel-tests.git
+(every time before you start) sync the main branch of your fork repo
+git fetch upstream --prune
+git checkout main
+git rebase upstream/main
+git pull --rebase
+git push origin main
+```
+
 
 ## 还原commit后的某个文件
 ```
