@@ -110,6 +110,13 @@ echo this is digit 7 in a number | sed 's/digit \([0-9]\)/\1/'
 > this is 7 in a number
 echo "seven EIGHT" | sed 's/\([a-z]\+\) \([A-Z]\+\)/\2 \1/'
 > EIGHT seven
+
+# 删除行首空格
+sed 's/^[ \t]*//g'
+# 删除行尾空格
+sed 's/[ \t]*$//g'
+# 删除所有空格
+sed s/[[:space:]]//g
 ```
 
 ## awk
