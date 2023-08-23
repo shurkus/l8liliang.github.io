@@ -93,7 +93,7 @@ ESMC报文有两种发送方式：
 当原最优时钟源恢复时，系统自动立即切换回原最优时钟。
 ```
 
-### 时钟同步原理
+## 时钟同步原理
 ```
 选出最优时钟后，设备开始锁定最优时钟，进行时钟同步（频率同步）。
 
@@ -174,4 +174,89 @@ The PLL can be viewed as a jitter and wander filter. The narrower the loop bandw
 
 Jitter and wander tolerance: 
 The PLL should tolerate large jitter and wander at its input and still maintain synchronization without raising any alarms.
+```
+
+## configuration
+```
+dpll pin 有三种，
+1.input：
+用来设置dpll的输入，可以把SMA,GPS或者RCLK作为dpll输入
+看起来还可以把ptp作为input？CVL-SDP看起来就是这种。
+pin-parent-device的id是dpll序号
+
+2.output：
+用来设置dpll的输出？和input类似？
+
+3.synce-eth-port：
+用来开启和关闭input pin？
+通过pin-parent-pin中的pin-id关联某个input pin，然后可以disable和enable input pin
+
+There are 2 recovery clocks on each device RCLKA and RCLKB
+
+RCLKA can only be connected to one port at a time and RCLKB can only be connected to one port at
+a time. Both can be assigned to the same port at the same time. Which one is connected is based on
+priority of the pin
+
+Enable RCLKA on pin-id 13 (RCLKA is ("pin-parent-pin":{"pin-id":2))
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":13, "pinparent-pin":{"pin-id":2, "pin-state":1}}'
+
+Use the pin-get command to see the status:
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump pin-get
+
+Verify RCLKA ‘input’ (pin id 2) is connected using the pin-get command:
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump pin-get
+
+Verify dpll status changes from unlocked/holdover to locked/locked-ho-acq
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump device-get
+
+Enable RCLKB on pin-id 15 (RCLKB is ("pin-parent-pin":{"pin-id":3))
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":15, "pinparent-pin":{"pin-id":3, "pin-state":1}}'
+
+Notice RCLKB input pin id 3 will not be connected until the you change its priority on either
+dpll 0 or 1 to be higher than RCLKA. Current priority is 8 for RCLKA for dpll 0 and 1 and
+current priority for RCLKB for dpll 0 and 1 is 9. So change RCLKB prio to 7.
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":3, "pin-parentdevice":{"id":1, "pin-prio":7}}'
+
+Should see RCLKB dpll 1 (pin-parent-device – id 1) show connected and RCLKA dpll 1 (pinparent-device – id 1) be selectable now. 
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-get --json '{"pin-id":3}'
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-get --json '{"pin-id":2}
+
+
+Disable recovery on both port pins:
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":13,
+"pin-parent-pin":{"pin-id":2, "pin-state":3}}'
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":15,
+"pin-parent-pin":{"pin-id":3, "pin-state":3}}'
+
+Verify recovery is disabled on both port pins:
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump pin-get
+# 
+
+Verify dpll is in holdover state:
+./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump device-get
+
+Enable recovery on both port pins again:
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":13,
+"pin-parent-pin":{"pin-id":2, "pin-state":1}}'
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":15,
+"pin-parent-pin":{"pin-id":3, "pin-state":1}}'
+
+synce configuration:
+server node external_input=1 internal_input=0
+follower node external_input=0 internal_input=1
+在synce配置文件里面添加dpll_state_file
+在synce配置文件里面添加port，并为每个port设置recover_clock_file
+启动synce4l on each side:
+synce4l -f conifgs/synce.cfg -m
+
+Go to /sys/class/net/<device name>/device/phy folder and execute the following command to enable
+RCLKA as follows,
+Note - do: echo <ENABLE (1) or DISABLE (0)> <WHICH RCLK, either 0 or 1>
+# echo 1 0 > synce
+
+Again DPLL status and RCLKA pin should be valid now,
+# cat /sys/kernel/debug/ice/0000\:18\:00.0/dpll
+
+turn off SW pin of dpll , it'll trigger DNU for quality signal and ext QL = 255 or 0xff
+# echo 0 0 > synce
 ```
