@@ -134,15 +134,21 @@ Idle periods in faster Ethernet flavors (100Mbps, 1Gbps and 10Gbps) are continuo
 ```
 Digital Phase Locked Loop(DPLL)
 
-+-------------------+   +----------------------------------------------+
-|device1            |   |device2                                       |
-|                   |   |                                              |
-|+----------+  +---+|   |+---+                                         |
-||高精度时钟|->|phy||-->||phy|<---------------+------------>业务模块   |
-|+----------+  +---+|   |+-+-+                |系统时钟                |
-+-------------------+   |  |recovery clock    ｜                       |
-                        |  +---------------->dpll                      |
-                        +----------------------------------------------+
++--------------------------+     +-------------------------------------------------+
+|device1                   |     |device2                                          |
+|                          |     |                                                 |
+|+------------+    +-----+ |     | +-----+                                         |
+|| clock      | -> | phy | | --> | | phy |<---------------+------------>业务模块   |
+|+------------+    +-----+ |     | +--+--+                |系统时钟                |
++--------------------------+     |    |recovery clock     ｜                       |
+                                 |    +------------------->dpll                    |
+                                 +-------------------------------------------------+
+
+接收方向提取并同步时钟信息：
+(1)     Device2的以太网接口卡PHY芯片从以太网线路收到的串行码流里提取发送端的时钟信息，分频之后上送到时钟扣板。
+(2)     时钟扣板将接口接收的线路时钟信号、外接时钟源2输入的时钟信号、本地晶振产生的时钟信号进行比较，根据自动选源算法选举出线路时钟信号作为最优时钟，并将时钟信号发送给时钟扣板上的锁相PLL。
+(3)     PLL跟踪时钟参考源后，同步本地系统时钟，并将本地系统时钟注入以太网接口卡PHY芯片往下游继续发送，同时将本地系统时钟输出给本设备的业务模块使用。
+
 
 Any Gigabit or 10 Gigabit Ethernet PHY device should be able to support synchronized Ethernet, so long as it provides a recovered clock on one of its output pins. 
 The recovered clock is cleaned by the PLL and fed to the 25MHz crystal oscillator input pin on the PHY device. 
