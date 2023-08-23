@@ -6,13 +6,13 @@ mathjax: true
 key: Linux
 ---
 
-[Reference](https://www.h3c.com/cn/Service/Document_Software/Document_Center/Home/Switches/00-Public/Learn_Technologies/White_Paper/(SyncE)_WP-6W100/)
+[Reference1](https://www.h3c.com/cn/Service/Document_Software/Document_Center/Home/Switches/00-Public/Learn_Technologies/White_Paper/(SyncE)_WP-6W100/)
 {:.info}
 
-[Reference](https://www.embedded.com/an-introduction-to-synchronized-ethernet/)
+[Reference2](https://www.embedded.com/an-introduction-to-synchronized-ethernet/)
 {:.info}
 
-[Reference](https://www.cisco.com/c/en/us/support/docs/ios-nx-os-software/ios-xr-software/217579-configure-ptp-and-synce-basics-with-cisc.html#anc7)
+[Reference3](https://www.cisco.com/c/en/us/support/docs/ios-nx-os-software/ios-xr-software/217579-configure-ptp-and-synce-basics-with-cisc.html#anc7)
 {:.info}
 
 ## 术语
@@ -24,6 +24,7 @@ Synchronization Supply Unit (SSU)
 Building Integrated Timing Supply (BITS)
 SDH Equipment Clock (SEC)
 SONET Minimum Clock (SMC)
+Digital Phase Locked Loop(DPLL)
 ```
 
 ## 产生背景
