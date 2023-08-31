@@ -1,7 +1,7 @@
 ---
 layout: article
 tags: Linux
-title: synce dpll
+title: SYNCE & DPLL
 mathjax: true
 key: Linux
 ---
@@ -183,7 +183,344 @@ Jitter and wander tolerance:
 The PLL should tolerate large jitter and wander at its input and still maintain synchronization without raising any alarms.
 ```
 
-## configuration
+## E810
+
+### E810 Architecture
+```
+(output) U.FL1   U.FL2(input)    GNSS
+	   ^       |              |
+           |       |              |
+           +       |              v
+SMA1----SMA Logic<-|--------->DPLL(        ) -----------------+---+--+--+--+
+                   |           ^  ^  ^   |R                   |   ^  |  ^  |REFCLK
+              +----+           |  |R |R  |E                   |S  |S |S |S |
+              |                |  |C |C  |F                   |D  |D |D |D |
+              v                |  |L |L  |C                   |P  |P |P |P |
+SMA2----SMA Logic<-------------+  |A |B  |L                   |2  |2 |2 |2 |
+                                  |  |   |K                   |3  |2 |1 |0 |
+                                  |  |   v                    v   |  v  |  v
+SFP-------------------------------+--+-<-+                   PHC(                  ) 
+SFP-------------------------------+--+                       |
+SFP-------------------------------+--+-----------------------+
+SFP-------------------------------+--+
+
+The timing information from the DPLL (that can arrive from the GNSS module, SMA connectors,
+E810 SDPs, or from the recovered SyncE signals) are routed to the E810 and can be used to
+synchronize the PHC (PTP hardware clocks). All E810 ports share only one physical PHC, and this is
+particularly useful in creating a Boundary Clock (BC) functionality like what is defined in ITU-T
+G.8273.2 (but without SyncE).
+
+DPLL0 is used for generating high stability clock signal and DPLL1 used for driving the output signals.
+DPLL0用于内部生成内部使用的时钟信号，DPLL1用于向外发送1PPS信号？
+ECC (DPLL0) driving the internal clocks and PPS (DPLL1) driving all 1PPS signals.
+EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustments.,
+glitchless.
+PPS - DPLL1 = 1 PPS generation from DPLL1 for phase adjustments. Glitches allowed. Slower
+locking.
+
+The Linux kernel provides the standard interface for controlling external synchronization pins
+To check if the kernel has the required PTP and pin interface, run the following command:
+# cat /proc/kallsyms | grep ptp_pin
+
+In the following example, the driver exposes the ptp7 device:
+#ls -R /sys/class/ptp/*/pins/
+/sys/class/ptp/ptp7/pins/:
+GNSS SMA1 SMA2 U.FL1 U.FL2
+
+In the following example, the ens260f0 net interface exposes pins through the ptp7 interface:
+#ls -R /sys/class/net/*/device/ptp/*/pins
+/sys/class/net/ens260f0/device/ptp/ptp7/pins:
+GNSS SMA1 SMA2 U.FL1 U.FL2
+
+Users can also run ethtool -T <interface name> to show the PTP clock number.
+# ethtool -T <interface name>
+PTP Hardware Clock: 7
+```
+
+### 设置DPLL pin
+```
+The E810-XXVDA4T has four connectors for external 1PPS signals: SMA1, SMA2, U.FL1, and U.FL2
+• SMA connectors are bidirectional and U.FL are unidirectional.
+• U.FL1 is 1PPS output and U.FL2 is 1PPS input.
+• SMA1 and U.FL1 connectors share channel one.
+• SMA2 and U.FL2 connectors share channel two.
+
+echo <function> <channel> > /sys/class/net/$ETH/device/ptp/*/pins/SMA1(SMA2,U.FL1,U.FL2)
+function: 
+  0 = Disabled
+  1 = Rx
+  2 = Tx
+channel: 
+  1 = SMA1 or U.FL1
+  2 = SMA2 or U.FL2
+
+channel 1:
+1. SMA1 as 1PPS input:
+# echo 1 1 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA1
+2. SMA1 as 1PPS output:
+# echo 2 1 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA1
+channel 2:
+1. SMA2 as 1PPS input:
+# echo 1 2 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA2
+2. SMA2 as 1PPS output:
+# echo 2 2 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA2
+```
+### Recovered Clocks (G.8261 SyncE Support)  
+```
+Recovered clocks can be configured using a special sysfs interface that is exposed by every port
+instance. Writing to a sysfs under a given port automatically enables a recovered clock from a given
+port that is valid for a current link speed. A link speed change requires repeating the steps to enable the
+recovered clock.
+
+If a port recovered clock is enabled and no higher-priority clock is enabled at the same time, the DPLL
+starts tuning its frequency to the recovered clock reference frequency enabling G.8261 functionality.
+There are two recovered clock outputs from the C827 PHY. Only one pin can be assigned to one of the
+ports. Re-enabling the same pin on a different port automatically disables it for the previously-assigned
+port.
+
+1. To enable a recovered clock for a given Ethernet device run the following:
+# echo <enable> <pin(clock id)> > /sys/class/net/$ETH/device/phy/synce
+where:
+	ena: 0 = Disable the given recovered clock pin.
+	     1 = Enable the given recovered clock pin.
+	pin: 0 = Enable C827_0-RCLKA (higher priority pin).
+	     1 = Enable C827_0-RCLKB (lower priority pin).
+
+For example, to enable the higher-priority recovered clock from Port 0 and a lower-priority recovered clock from Port 1, run the following:
+# export ETH0=enp1s0f0
+# export ETH1=enp1s0f1
+# echo 1 0 > /sys/class/net/$ETH0/device/phy/synce
+# dmesg
+[27575.495705] ice 0000:03:00.0: Enabled recovered clock: pin C827_0-RCLKA
+# echo 1 1 > /sys/class/net/$ETH1/device/phy/synce
+# dmesg
+[27575.495705] ice 0000:03:00.0: Enabled recovered clock: pin C827_0-RCLKB
+
+2.Disable recovered clocks:
+# echo 0 0 > /sys/class/net/$ETH0/device/phy/synce
+# dmesg
+[27730.341153] ice 0000:03:00.0: Disabled recovered clock: pin C827_0-RCLKA
+# echo 0 1 > /sys/class/net/$ETH1/device/phy/synce
+# dmesg
+[27730.341153] ice 0000:03:00.0: Disabled recovered clock: pin C827_0-RCLKB
+
+Check recovered clock status:
+You can add the current status of the recovered clock to the dmesg:
+#echo dump rclk_status > /sys/kernel/debug/ice/0000:03:00.0/command
+# dmesg
+[311274.298749] ice 0000:03:00.0: State for port 0, C827_0-RCLKA: Disabled
+[311274.300060] ice 0000:03:00.0: State for port 0, C827_0-RCLKB: Disabled
+```
+
+### External Timestamp Signals
+```
+The E810-XXVDA4T can use external 1PPS signals filtered out by the DPLL as its own time reference.
+When the DPLL is synchronized to the GNSS module or an external 1PPS source, the ts2phc tool can be
+used to synchronize the time to the 1PPS signal.
+
+# export ETH=enp1s0f0
+# export TS2PHC_CONFIG=/home/<user>/linuxptp-3.1/configs/ts2phc-generic.cfg
+# ts2phc -f $TS2PHC_CONFIG -s generic -m -c $ETH
+# cat $TS2PHC_CONFIG
+[global]
+use_syslog 0
+verbose 1
+logging_level 7
+ts2phc.pulsewidth 100000000
+#For GNSS module
+#ts2phc.nmea_serialport /dev/ttyGNSS_BBDD_0 #BB bus number DD device number /dev/
+ttyGNSS_1800_0
+#leapfile /../<path to .list leap second file>
+[<network interface>]
+ts2phc.extts_polarity
+rising
+```
+
+### Periodic Outputs From DPLL (SMA and U.FL Pins)
+```
+The E810-XXVDA4T supports two periodic output channels (SMA1 or U.FL1 and SMA2). Channels can be
+enabled independently and output 1PPS generated by the embedded DPLL. 1PPS outputs are
+synchronized to the reference input driving the DPLL1. Users can read the current reference signal
+driving the 1PPS subsystem by running the following command:
+
+# dmesg | grep "<DPLL1> state changed" | grep locked | tail -1
+[ 342.850270] ice 0000:01:00.0: DPLL1 state changed to: locked, pin GNSS-1PPS
+
+The following configurations of 1PPS outputs are supported:
+1. SMA1 as 1PPS output:
+# echo 2 1 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA1
+2. U.FL1 as 1PPS output:
+# echo 2 1 > /sys/class/net/$ETH/device/ptp/ptp*/pins/U.FL1
+3. SMA2 as 1PPS output:
+# echo 2 2 > /sys/class/net/$ETH/device/ptp/ptp*/pins/SMA2
+```
+
+###  Reading Status of the DPLL
+```
+# cat /sys/kernel/debug/ice/$PCI_SLOT/cgu
+Found ZL80032 CGU
+DPLL Config ver: 1.3.0.1
+CGU Input status:
+ | | priority |
+ input (idx) | state | EEC (0) | PPS (1) |
+ ---------------------------------------------------
+ CVL-SDP22 (0) | invalid | 8 | 8 |
+ CVL-SDP20 (1) | invalid | 15 | 3 |
+ C827_0-RCLKA (2) | invalid | 4 | 4 |
+ C827_0-RCLKB (3) | invalid | 5 | 5 |
+ SMA1 (4) | invalid | 1 | 1 |
+ SMA2/U.FL2 (5) | invalid | 2 | 2 |
+ GNSS-1PPS (6) | valid | 0 | 0 |
+EEC DPLL:
+Current reference: GNSS-1PPS
+Status: locked_ho_ack
+PPS DPLL:
+Current reference: GNSS-1PPS
+Status: locked_ho_ack
+Phase offset: -217
+
+The first section of the log shows the status of CGU inputs (references) including its index number.
+Active references currently selected are listed in Section 4.2. EEC Ethernet equipment clock (DPLL0)
+skips the 1PPS signal received on the CVL-SDP20 pin.
+The second section lists all internal DPLL units. ECC (DPLL0) driving the internal clocks and PPS (DPLL1)
+driving all 1PPS signals.
+```
+
+### DPLL Monitoring
+```
+Enabling DPLL monitoring:
+ethtool --set-priv-flags $ETH dpll_monitor on
+Disabling DPLL monitoring:
+ethtool --set-priv-flags $ETH dpll_monitor off
+```
+
+### pin_cfg User Readable Format
+```
+To check the DPLL pin configuration:
+# cat /sys/class/net/ens4f0/device/pin_cfg
+in
+| pin| enabled| freq| phase_delay| esync| DPLL0 prio| DPLL1 prio|
+| 0| 1| 1| 0| 0| 8| 8|
+| 1| 1| 1| 0| 0| 15| 3|
+| 2| 1| 1953125| 0| 0| 4| 4|
+| 3| 1| 1953125| 0| 0| 5| 5|
+| 4| 1| 1| 7000| 0| 1| 1|
+| 5| 1| 1| 7000| 0| 2| 2|
+| 6| 1| 1| 0| 0| 0| 0|
+out
+| pin| enabled| dpll| freq| esync|
+| 0| 1| 1| 1| 0|
+| 1| 1| 1| 1| 0|
+| 2| 1| 0| 156250000| 0|
+| 3| 1| 0| 156250000| 0|
+| 4| 1| 1| 1| 0|
+| 5| 1| 1| 1| 0|
+In the “in” table. the pin numbers are referred from the DPLL Priority See Section 4.2, “DPLL Priority”.
+In the “out” table pin 0 is SMA1 pin 1 is SMA2, all the other values do not modify.
+
+Changing the DPLL priority list:
+# echo "prio <prio value> dpll <dpll index> pin <pin index>" > \ /sys/class/net/<dev>/device/pin_cfg
+where:
+prio value = Desired priority of configured pin [0-14]
+dpll index = Index of DPLL being configured [0:EEC (DPLL0), 1:PPS (DPLL1)]
+pin index = Index of pin being configured [0-9]
+
+Example:
+Set priority 1 for pin 3 on DPLL 0:
+# export ETH=enp1s0f0
+# echo "prio 1 dpll 0 pin 3" > /sys/class/net/$ETH/device/pin_cfg
+
+Changing input/output pin configuration:
+# echo "<direction> pin <pin index> <config>" > /sys/class/net/<dev>/device/pin_cfg
+where:
+direction = pin direction being configured [“in”: input pin, “out”: output pin]
+pin index = index of pin being configured [for in 0-6 (see DPLL priority section); for out 0:SMA1 1: SMA2]
+config = list of configuration parameters and values:
+[ "freq <freq value in Hz>",
+ "phase_delay <phase delay value in ns>" // NOT used for out,
+ "esync <0:disabled, 1:enabled>"
+ "enable <0:disabled, 1:enabled>" ]
+
+Note: The esync setting has meaning only with the 10 MHz frequency, you need to have esync to have the same setting in both ends of the SMA.
+Example:
+# export ETH=enp1s0f0
+Set freq to 10 MHz on input pin 4: DPLL will lock only if 10 MHz signals arrive on SMA1 and it has been enabled for input.
+# echo "in pin 4 freq 10000000" > /sys/class/net/$ETH/device/pin_cfg
+
+```
+
+### cgu_ref_pin/cgu_state Machine Readable Interface
+```
+To find out which pin the DPLL0 (EEC DPLL) is locked on, check the cgu_ref_pin:
+# cat /sys/class/net/<dev>/device/cgu_ref_pin
+To check the state of the DPLL0 (EEC DPLL) you can check the cgu_state:
+# cat /sys/class/net/<dev>/device/cgu_state
+DPLL_UNKNOWN = -1,
+DPLL_INVALID = 0,
+DPLL_FREERUN = 1,
+DPLL_LOCKED = 2,
+DPLL_LOCKED_HO_ACQ = 3,
+DPLL_HOLDOVER = 4
+The cgu_state interface used by synce4l as well.
+```
+
+### 1PPS Signals from E810 Device to DPLL
+```
+The E810-XXVDA4T implements two 1PPS signals coming out of the MAC (E810 device) to the DPLL.
+They serve as the phase reference (CVL-SDP20) and as both phase and frequency reference (CVLSDP22) signals.
+To enable a periodic output, write five integers into the file: channel index, start time seconds, start
+time nanoseconds, period seconds, and period nanoseconds. To disable a periodic output, set all the
+seconds and nanoseconds values to zero.
+
+1. To enable the phase reference pin (CVL-SDP20):
+# echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+
+2. To enable the phase and frequency reference pin (CVL-SDP22):
+# echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+
+3. To disable the phase reference pin (CVL-SDP20):
+# echo 1 0 0 0 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+
+4. To disable the phase and frequency reference pin (CVL-SDP22):
+# echo 2 0 0 0 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+```
+
+### 1PPS Signals from the DPLL to E810 Device
+```
+The DPLL automatically delivers 2x 1PPS signals to the E810 device on pin 21 and 23. These signals can
+be used to synchronize the E810 to the DPLL phase with the ts2phc program. The E810 will capture the
+timestamp when the 1PPS signal arrives.
+
+To ensure that the timestamps from the 1PPS signals are only used when the DPLL is locked to a signal,
+you can enable the 1 PPS filtering option. By default, filtering is disabled, and all the timestamps are
+passed along by the E810 ice driver.
+
+The DPLL 1PPS filtering can be enabled (on) or disabled (off) by using the ethtool command in the Linux
+kernel.
+
+# export ETH=ens801f0
+#ethtool --show-priv-flags $ETH
+Private flags for ens801f0:
+link-down-on-close : off
+fw-lldp-agent : off
+channel-inline-flow-director : off
+channel-inline-fd-mark : off
+channel-pkt-inspect-optimize : on
+channel-pkt-clean-bp-stop : off
+channel-pkt-clean-bp-stop-cfg: off
+vf-true-promisc-support : off
+mdd-auto-reset-vf : off
+vf-vlan-pruning : off
+legacy-rx : off
+dpll_monitor : on
+extts_filter : off
+Enabling DPLL's 1 filtering:
+ethtool --set-priv-flags $ETH extts_filter on
+Disabling DPLL's 1 filtering:
+ethtool --set-priv-flags $ETH extts_filter off
+```
+
+## From Intel DPLL TestPlan
 ```
 dpll pin 有三种，
 1.input：
@@ -196,7 +533,7 @@ pin-parent-device的id是dpll序号
 
 3.synce-eth-port：
 用来开启和关闭input pin？
-通过pin-parent-pin中的pin-id关联某个input pin，然后可以disable和enable input pin
+通过pin-parent-pin中的pin-id关联某个RCLK input pin，然后可以disable和enable input pin
 
 There are 2 recovery clocks on each device RCLKA and RCLKB
 
