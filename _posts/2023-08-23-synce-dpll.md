@@ -524,16 +524,22 @@ ethtool --set-priv-flags $ETH extts_filter off
 ```
 dpll pin 有三种，
 1.input：
-用来设置dpll的输入，可以把SMA,GPS或者RCLK作为dpll输入
-看起来还可以把ptp作为input？CVL-SDP看起来就是这种。
+用来设置dpll的输入，可以把CVL,SMA,U.FL2,GPS或者RCLK作为dpll输入
+通过CVL-SDP可以把ptp作为input。
 pin-parent-device的id是dpll序号
 
 2.output：
-用来设置dpll的输出？和input类似？
+输出引脚，用来设置dpll的输出.
+包括REF-SMA1,REF-SMA2,U.FL1,PHY-CLK,MAC-CLK,CVL-SDP
 
 3.synce-eth-port：
-用来开启和关闭input pin？
-通过pin-parent-pin中的pin-id关联某个RCLK input pin，然后可以disable和enable input pin
+input pin中的RCLKA和RCLKB是multiplexer类型的pin。
+synce-eth-port可以注册到这种multiplexer类型的pin，就是parent是multiplexer类型的pin。
+一个synce-eth-port可以注册到多个mux pins。
+多个synce-eth-port可以注册到同一个mux pins，但是同一时刻只有一个synce-eth-port pin可以作为mux pin的input。
+可以通过 设置state来指定哪个pin作为input生效。
+比如 Enable RCLKA on pin-id 13 (RCLKA is ("pin-parent-pin":{"pin-id":2))
+# ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":13, "pinparent-pin":{"pin-id":2, "pin-state":1}}'
 
 There are 2 recovery clocks on each device RCLKA and RCLKB
 
