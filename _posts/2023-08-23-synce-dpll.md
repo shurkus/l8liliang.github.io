@@ -534,7 +534,7 @@ pin-parent-device的id是dpll序号
 
 3.synce-eth-port：
 input pin中的RCLKA和RCLKB是multiplexer类型的pin。
-synce-eth-port可以注册到这种multiplexer类型的pin，就是parent是multiplexer类型的pin。
+synce-eth-port可以注册到这种multiplexer类型的pin，注册之后，他的parent就是multiplexer类型的pin。
 一个synce-eth-port可以注册到多个mux pins。
 多个synce-eth-port可以注册到同一个mux pins，但是同一时刻只有一个synce-eth-port pin可以作为mux pin的input。
 可以通过 设置state来指定哪个pin作为input生效。
