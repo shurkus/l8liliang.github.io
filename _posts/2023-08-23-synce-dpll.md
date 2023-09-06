@@ -211,7 +211,7 @@ particularly useful in creating a Boundary Clock (BC) functionality like what is
 G.8273.2 (but without SyncE).
 
 DPLL0 is used for generating high stability clock signal and DPLL1 used for driving the output signals.
-DPLL0用于内部生成内部使用的时钟信号，DPLL1用于向外发送1PPS信号？
+DPLL0用于生成内部使用的时钟信号，DPLL1用于生成1PPS信号？
 ECC (DPLL0) driving the internal clocks and PPS (DPLL1) driving all 1PPS signals.
 EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustments.,
 glitchless.
