@@ -217,6 +217,12 @@ EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustmen
 glitchless.
 PPS - DPLL1 = 1 PPS generation from DPLL1 for phase adjustments. Glitches allowed. Slower
 locking.
+Set periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Or, if users want to set SDP22 (to synchronize the DPLL0 to E810 PHC synced by ptp4l): # echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Set the periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Or, if users want to set SDP22 (to synchronize the DPLL0 and DPLL1 to the E810 PHC synced by ptp4l):
+# echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+
 
 The Linux kernel provides the standard interface for controlling external synchronization pins
 To check if the kernel has the required PTP and pin interface, run the following command:
@@ -483,6 +489,12 @@ seconds and nanoseconds values to zero.
 
 4. To disable the phase and frequency reference pin (CVL-SDP22):
 # echo 2 0 0 0 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+
+Set periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Or, if users want to set SDP22 (to synchronize the DPLL0 to E810 PHC synced by ptp4l): # echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Set the periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
+Or, if users want to set SDP22 (to synchronize the DPLL0 and DPLL1 to the E810 PHC synced by ptp4l):
+# echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
 ```
 
 ### 1PPS Signals from the DPLL to E810 Device
