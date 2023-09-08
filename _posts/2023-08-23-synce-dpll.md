@@ -210,19 +210,26 @@ synchronize the PHC (PTP hardware clocks). All E810 ports share only one physica
 particularly useful in creating a Boundary Clock (BC) functionality like what is defined in ITU-T
 G.8273.2 (but without SyncE).
 
+No, phase is not absolute time. There is phase synchronization, frequency synchronization and time synchronization. 
+So two clocks can be running at the same speed (frequency) but it they don "tick" at the same time their phases are not aligned. 
+That is what phase synchronization provides.
+
+The output from the 1PPS from the GNSS receiver in the E810 can be configured to provide phase synchronization to the DPLL1.  
+The T-GM use case leveraging time reference signal from GNSS satellite depends on that.
+1PPS即可以同步频率也可以同步相位.(实际上频率同步是通过计算相位变化速率实现的 
+https://www.nist.gov/pml/time-and-frequency-division/popular-links/time-frequency-z/time-and-frequency-z-p#:~:text=The%20time%20interval%20for%201,time%20shift%20of%20555%20picoseconds)
+
 DPLL0 is used for generating high stability clock signal and DPLL1 used for driving the output signals.
-DPLL0用于生成内部使用的时钟信号，DPLL1用于生成1PPS信号？
+DPLL0用于生成内部使用的时钟信号，DPLL1用于生成1PPS信号.
 ECC (DPLL0) driving the internal clocks and PPS (DPLL1) driving all 1PPS signals.
-EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustments.,
-glitchless.
-PPS - DPLL1 = 1 PPS generation from DPLL1 for phase adjustments. Glitches allowed. Slower
-locking.
+EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustments., glitchless.
+PPS - DPLL1 = 1 PPS generation from DPLL1 for phase adjustments. Glitches allowed. Slower locking.
+
 Set periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
 Or, if users want to set SDP22 (to synchronize the DPLL0 to E810 PHC synced by ptp4l): # echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
 Set the periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
 Or, if users want to set SDP22 (to synchronize the DPLL0 and DPLL1 to the E810 PHC synced by ptp4l):
 # echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
-
 
 The Linux kernel provides the standard interface for controlling external synchronization pins
 To check if the kernel has the required PTP and pin interface, run the following command:
@@ -561,6 +568,15 @@ priority of the pin
 
 Enable RCLKA on pin-id 13 (RCLKA is ("pin-parent-pin":{"pin-id":2))
 # ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":13, "pinparent-pin":{"pin-id":2, "pin-state":1}}'
+上面的命令有问题，下面可以执行
+# ./cli.py --spec /root/dpll.yaml --schema /root/genetlink.yaml --do pin-set --json '{"id":13, "parent-pin":{"parent-id":2, "state":1}}'
+{'capabilities': 4,
+  'clock-id': 5799633565436792966,
+  'id': 13,
+  'module-name': 'ice',
+  'parent-pin': [{'parent-id': 2, 'state': 'connected'},
+                 {'parent-id': 3, 'state': 'disconnected'}],
+  'type': 'synce-eth-port'},
 
 Use the pin-get command to see the status:
 # ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --dump pin-get
@@ -578,6 +594,8 @@ Notice RCLKB input pin id 3 will not be connected until the you change its prior
 dpll 0 or 1 to be higher than RCLKA. Current priority is 8 for RCLKA for dpll 0 and 1 and
 current priority for RCLKB for dpll 0 and 1 is 9. So change RCLKB prio to 7.
 # ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-set --json '{"pin-id":3, "pin-parentdevice":{"id":1, "pin-prio":7}}'
+上面命令不能执行，下面可以执行
+# ./cli.py --spec /root/dpll.yaml --schema /root/genetlink.yaml --do pin-set --json '{"id":6, "parent-device":{"parent-id":1, "prio":5}}'
 
 Should see RCLKB dpll 1 (pin-parent-device – id 1) show connected and RCLKA dpll 1 (pinparent-device – id 1) be selectable now. 
 # ./cli.py --spec /usr/src/kernels/linux-dpll-net-next-dpllv11/Documentation/netlink/specs/dpll.yaml --do pin-get --json '{"pin-id":3}'
