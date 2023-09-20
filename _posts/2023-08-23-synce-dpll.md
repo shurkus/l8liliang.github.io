@@ -401,6 +401,12 @@ driving all 1PPS signals.
 
 ### DPLL Monitoring
 ```
+In the default configuration, the E810-XXVDA4T driver enables monitoring of the DPLL events and reports state changes 
+in the default system log (dmesg) with the WARN level independently for each of the DPLL units.
+DPLLs start in a holdover mode and enter an unlocked and locked state when a valid reference input is enabled. 
+If the current input becomes invalid, DPLLs change state to holdover. When the reference reappears (or a different valid input is present), 
+the DPLL state changes to the unlocked state and locks to a new signal.
+
 Enabling DPLL monitoring:
 ethtool --set-priv-flags $ETH dpll_monitor on
 Disabling DPLL monitoring:
