@@ -354,12 +354,12 @@ git merge upstream/master
 ```
 (one time) add the original/upstream repo in local copy of your fork
 git remote add upstream git@gitlab.com:redhat/centos-stream/tests/kernel/kernel-tests.git
-(every time before you start) sync the main branch of your fork repo
+(every time before you start) sync the master branch of your fork repo
 git fetch upstream --prune
-git checkout main
-git rebase upstream/main
+git checkout master
+git rebase upstream/master
 git pull --rebase
-git push origin main
+git push origin master
 ```
 
 
