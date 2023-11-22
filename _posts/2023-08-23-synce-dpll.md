@@ -646,3 +646,13 @@ Again DPLL status and RCLKA pin should be valid now,
 turn off SW pin of dpll , it'll trigger DNU for quality signal and ext QL = 255 or 0xff
 # echo 0 0 > synce
 ```
+
+## ts2phc
+```
+-s generic 
+  Use the key word "generic" for an external 1-PPS without ToD information.
+  1PPS to DPLL
+-s nmea
+  Use the key word "nmea" for an external 1-PPS from a GPS providing ToD information via the RMC NMEA sentence.
+  就是GNSS console ToD
+```

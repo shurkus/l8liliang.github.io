@@ -123,6 +123,8 @@ Git鼓励大量使用分支：
 创建+切换分支：git checkout -b name
 合并某分支到当前分支：git merge name
 删除分支：git branch -d name
+删除分支：git branch -D name //即使分支还没merge也强制删除
+删除远程分支：git push origin --delete devel
 开发一个新feature，最好新建一个分支；
 如果要丢弃一个没有被合并过的分支，可以通过git branch -D <name>强行删除。
 ```
