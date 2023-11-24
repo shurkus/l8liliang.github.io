@@ -656,3 +656,26 @@ turn off SW pin of dpll , it'll trigger DNU for quality signal and ext QL = 255 
   Use the key word "nmea" for an external 1-PPS from a GPS providing ToD information via the RMC NMEA sentence.
   就是GNSS console ToD
 ```
+
+## synce4l
+```
+https://github.com/intel/synce4l
+
+The lack of messages is considered to be a failure condition. 
+The protocol behaviour is such that the quality level is considered QL-FAILED if no SSM messages are received after a five second period.
+
+wait-to-restore:
+The wait-to-restore time ensures that a previous failed synchronization source is only again considered as available by the selection process if it is fault-free for a certain time.
+就是必须恢复正常多长时间之后才认为他真正有效。
+recover_time和wait-to-restore是同样的意思。
+
+network_option:
+Network option according to T-REC-G.8264. All devices in SyncE domain should have the same option configured.
+
+tx_heartbeat_msec:
+ESMC发送间隔
+
+rx_heartbeat_msec:
+ESMC poll间隔
+
+```
