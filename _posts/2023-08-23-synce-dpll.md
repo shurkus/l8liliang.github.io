@@ -668,6 +668,8 @@ wait-to-restore:
 The wait-to-restore time ensures that a previous failed synchronization source is only again considered as available by the selection process if it is fault-free for a certain time.
 就是必须恢复正常多长时间之后才认为他真正有效。
 recover_time和wait-to-restore是同样的意思。
+停止master synce4l之后，slave side会因为5秒内未收到SSM而进入QL-FAILED状态。
+再启动master synce4l之后，slave在收到SSM消息之后，要等待recover_time才能切换为lock状态
 
 network_option:
 Network option according to T-REC-G.8264. All devices in SyncE domain should have the same option configured.
@@ -677,5 +679,13 @@ ESMC发送间隔
 
 rx_heartbeat_msec:
 ESMC poll间隔
+
+use_syslog 1
+message_tag                [synce4l]
+vim /etc/rsyslog.conf 
+:syslogtag, contains, "synce4l"                         /var/log/synce
+
+input_QL                   0x1   // SSM code https://github.com/intel/synce4l
+input_ext_QL               0x20  // Extended SSM code https://github.com/intel/synce4l
 
 ```
