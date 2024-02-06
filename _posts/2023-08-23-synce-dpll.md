@@ -651,10 +651,25 @@ turn off SW pin of dpll , it'll trigger DNU for quality signal and ext QL = 255 
 ```
 -s generic 
   Use the key word "generic" for an external 1-PPS without ToD information.
-  1PPS to DPLL
+  1PPS from DPLL1
 -s nmea
   Use the key word "nmea" for an external 1-PPS from a GPS providing ToD information via the RMC NMEA sentence.
   就是GNSS console ToD
+
+如果用generic，就只需SDP21或者23
+如果用nmea，那么还需要console ToD。
+
+GNSS recvr syncs itself from the GNSS constellation(s) → 
+GNSS syncs (DPLL0) and DPLL1 → 
+syncs E810’s PHC (with ts2phc, using ToD NMEAs from the vSerial of GNSS + 1PPS out from DPLL1 / 1PPS in E810 SDP21|23) → 
+phc2sys sync node clock fom PHC
+
+The phc2sys tool should not be run at the same time as ts2phc using the generic source of ToD (-s generic). 
+In the default configuration, ts2phc uses hardware-generated timestamps along with the system timer to create correction values. 
+Running the tools in parallel can create a feedback that breaks time synchronization. 
+The leapfile option is available but not necessary for the program to run. 
+Also, the default .leap file is not compatible with ts2phc.
+
 ```
 
 ## synce4l

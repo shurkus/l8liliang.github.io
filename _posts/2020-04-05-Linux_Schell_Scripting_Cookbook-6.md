@@ -455,3 +455,41 @@ git send-email -1 <commit reference>
 #Sending the last 10 commits in the current branch:
 git send-email -10 --cover-letter --annotate
 ```
+
+## lfs
+```
+https://zhuanlan.zhihu.com/p/623818862
+
+LFS全称Large File Storge，即大文件存储，可以帮助我们管理比较大的文件，对于二进制文件来说，git lfs对于需要追踪的文件只会保存一个指向该文件的指针，
+而不是在本地仓库中保存每次提交的版本，这解答的节省了本地磁盘空间，同时也缩小的git的传输时间。
+
+mac:
+brew install git-lfs
+git lfs install
+
+linux:
+curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.rpm.sh | sudo bash
+sudo yum install git-lfs
+git lfs install
+
+cd 到 git 仓库所在目录
+git lfs track “xxx”，告诉 lfs 需要处理哪些文件
+此时，目录下会出现 .gitattributes 文件，里面是 lfs 的追踪信息
+Note:需要将.gitattributes 加入版本控制
+
+显示当前被 lfs 追踪的文件列表
+git lfs ls-files 
+
+查看现有的文件追踪模式
+git lfs track 
+
+取消 git lfs 对某文件的追踪
+git lfs untrack "\*xx.a" 
+
+查看当前 git lfs 版本
+git lfs version 
+
+取消 LFS 的全局配置
+git lfs uninstall
+
+```
