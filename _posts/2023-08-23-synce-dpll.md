@@ -185,6 +185,61 @@ The PLL should tolerate large jitter and wander at its input and still maintain 
 
 ## E810
 
+### eEEC and 1PPS
+```
+> Hello Pasi,
+>
+> Do you know why DPLL outputs two signals, i.e. DPLL0 outputting a
+> clock signal and DPLL1 outputting 1PPS signal?
+>
+DPLL0只处理频率，来源包括RCLK和PTP，(当只有GNSS 1PPS输入的时候，也通过1PPS进行频率同步）。
+DPLL1处理相位，来源包括GNSS和PTP。
+Yes, DPLL0 is eEEC and deals with the frequency only (including input
+sources other than GNSS, such as clocks recovered from Ethernet
+interfaces or E810 when PTP is acting as source), while DPLL1 deals with
+the phase only (i.e. it is syncronized to 1Hz pulse per second,
+irrespective of the source), which is basically "exact" (to the extent
+possible) location of the 1Second boundary, irrespective of it's source
+(either GNSS receiver or PTP / E810).
+> From my understanding the clock signal is for synchronizing frequency 
+> and 1PPS signal is for synchronizing phase?
+>
+yes, see above
+> But with 1PPS input from GNSS, DPLL can achieve both frequency and
+> phase synchronization.
+>
+GNSS其实也输出频率，但是没有连接到DPLL。
+如果只连接了1PPS，DPLL0和DPLL1都使用1PPS进行同步。
+Yes, it can be debated whether this is optimal, but it works well enough
+in this case. There is also freq output from GNSS module but it is not
+physically wired to DPLL, so both frequency and phase aligment pieces
+are sourced from 1PPS signal only. Both DPLLs in this case use 1PPS as
+inputs.
+> So it seems 1PPS is enough for frequency and phase synchronization,
+> why DPLL outputs two signals?
+>
+没太看懂，DPLL会输出多个phase和frequency？
+DPLL outputs way more than two signals on both phase (although in that
+case they are generally all 1PPS phase aligned signals irrespective of
+the destination). On frequency side there are many outputs as well, and
+with different frequencies (10Mhz, 155+ Mhz, clocik to E810 etc.).
+> What's the difference between clock signal and 1PPS signal?
+clock就是固定频率的信号，不能表示ToD.
+Clock is what it sounds like, a periodic signal with specific frequency
+(e.g. 10Mhz clock has 10M transitions per second), clock signal can not
+be signify time by itself, but high speed clocks are required for
+various purposes, including ns level timekeeping as well as PHY clocks
+etc. Clock signal transitions are not necessarily aligned in phase with
+the 1PPS transition, although SOME of them are or can be, it dpends on
+the specific clock and it's purpose.
+
+ToD is ASCII string from GNSS module in GM case, (in WPC/LB case it's NMEA sentence) which tells what second the 1PPS lo-hi transition edge is associated with, 
+as from the transition alone you only  know that it is start of new second, which is necessary but not sufficient 
+to figure out the time which is what we are fundamentally trying to sychronize w/ 1PPSs.
+
+Pasi
+```
+
 ### E810 Architecture
 ```
 (output) U.FL1   U.FL2(input)    GNSS
@@ -216,14 +271,18 @@ That is what phase synchronization provides.
 
 The output from the 1PPS from the GNSS receiver in the E810 can be configured to provide phase synchronization to the DPLL1.  
 The T-GM use case leveraging time reference signal from GNSS satellite depends on that.
-1PPS即可以同步频率也可以同步相位.(实际上频率同步是通过计算相位变化速率实现的 
+相位同步的前提是频率同步。1PPS即可以同步频率也可以同步相位.(实际上频率同步是通过计算相位变化速率实现的. 
+DPLL可以接受任何引号，比如1pps或者RCLK的信号，去达到相位同步?
+RCLK从网络上获取频率，并且把相应的频率信号发送给DPLL，当然所有这种信号都包含频率信息和相位信息，所以DPLL可以使用这个信号去lock自己?
+
 https://www.nist.gov/pml/time-and-frequency-division/popular-links/time-frequency-z/time-and-frequency-z-p#:~:text=The%20time%20interval%20for%201,time%20shift%20of%20555%20picoseconds)
 
 DPLL0 is used for generating high stability clock signal and DPLL1 used for driving the output signals.
-DPLL0用于生成内部使用的时钟信号，DPLL1用于生成1PPS信号.
+DPLL0用于生成内部使用的时钟信号(frequency only)，DPLL1用于生成1PPS信号.
 ECC (DPLL0) driving the internal clocks and PPS (DPLL1) driving all 1PPS signals.
 EEC - DPLL0 = Ethernet equipment clock source from DPLL0 for frequency adjustments., glitchless.
 PPS - DPLL1 = 1 PPS generation from DPLL1 for phase adjustments. Glitches allowed. Slower locking.
+为什么DPLL1的1PPS输出不能用来同步frequency？DPLL就是同步到GNSS的1PPS输出啊？是因为网卡更容易通过时钟信号同步frequency？
 
 Set periodic output on SDP20 (to synchronize the DPLL1 to the E810 PHC synced by ptp4l): # echo 1 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
 Or, if users want to set SDP22 (to synchronize the DPLL0 to E810 PHC synced by ptp4l): # echo 2 0 0 1 0 > /sys/class/net/$ETH/device/ptp/ptp*/period
