@@ -15,6 +15,156 @@ key: Linux
 [Reference3](https://www.cisco.com/c/en/us/support/docs/ios-nx-os-software/ios-xr-software/217579-configure-ptp-and-synce-basics-with-cisc.html#anc7)
 {:.info}
 
+[Reference4](https://www.ciscopress.com/articles/article.asp?p=3128857&seqNum=2)
+{:.info}
+
+## Clock
+```
+In everyday usage, the term clock refers to a device that maintains and displays the time of day and perhaps the date. 
+In the world of electronics, however, clock refers to a microchip that generates a clock signal, 
+which is used to regulate the timing and speed of the components on a circuit board. 
+This clock signal is a waveform that is generated either by a clock generator or the clock itself—the most common form of clock signal in electronics is a square wave.
+```
+
+## PLL
+```
+A phase-locked loop (PLL) is an electronic device or circuit that generates an output clock signal that 
+is phase-aligned as well as frequency-aligned to an input clock signal. 
+As shown in Figure 5-3, in its simplest form, a PLL circuit consists of three basic elements, as described in the list that follows.
+```
+
+## Low-Pass and High-Pass Filters
+```
+A low-pass filter (LPF) is a filter that filters out (removes) signals that are higher than a fixed frequency, 
+which means an LPF passes only signals that are lower than a certain frequency—hence the name low-pass filter. 
+For the same reasons, sometimes LPFs are also called high-cut filters because they cut off signals higher than some fixed frequency. 
+Figure 5-5 illustrates LPF filtering where signals with lower frequency than a cut-off frequency are not attenuated (diminished). 
+The pass band is the range of frequencies that are not attenuated, and the stop band is the range of frequencies that are attenuated.
+```
+
+## Jitter and Wander
+```
+Noise is classified as either jitter or wander. As seen in the preceding section “Jitter and Wander,” by convention, 
+jitter is the short-term variation, and wander is the long-term variation of the measured clock compared to the reference clock. 
+The ITU-T G.810 standard defines jitter as phase variation with a rate of change greater than or equal to 10 Hz, 
+whereas it defines wander as phase variation with a rate of change less than 10 Hz. In other words, slower-moving, low-frequency jitter (less than 10 Hz) is called wander.
+
+https://www.ciscopress.com/articles/article.asp?p=3128857
+如这里面的Figure5-8: jitter表示每个上升沿或者下降沿的时间差别，wander表示时间差别在变大还是缩小。
+
+Jitter和Wander就在哪里，你可以用不同的方法去测量。
+比如，MTIE和TDEV都属于一种Wander
+```
+
+## Frequency Error
+```
+While jitter and wander are both metrics to measure phase errors, the frequency error (or accuracy) also needs to be measured.
+
+The frequency error (also referred to as frequency accuracy) is the degree to which the frequency of a clock can deviate from a nominal (or reference) frequency. 
+The metric to measure this degree is called the fractional frequency deviation (FFD) or sometimes just the frequency offset. 
+This offset is also referred to as the fractional frequency offset (FFO).
+
+y(t)=(v(t)-v(nom))/v(nom)
+
+where:
+
+y(t) is the FFD at time t
+v(t) is the frequency being measured and
+v(nom) is the nominal (or reference) frequency
+
+FFD is often expressed in parts per million (ppm) or parts per billion (ppb).
+
+```
+
+## Time Error
+```
+就是两个时钟的时间差
+```
+
+## max TE
+```
+max|TE|, which is defined as the maximum absolute value of the time error observed over the course of the measurement
+```
+
+## Time Interval Error
+```
+see https://www.ciscopress.com/articles/article.asp?p=3128857&seqNum=2
+
+The time interval error (TIE) is the measure of the change in the TE over an observation interval. 
+
+In comparison, the TE is the instantaneous measure between the two clocks; there is no interval being observed. 
+So, while the TE is the recorded error between the two clocks at any one instance, the TIE is the error accumulated over the interval (length) of an observation. 
+Another way to think of it is that the TE is the relative time error between two clocks at a point (instant) of time, 
+whereas TIE is the relative time error between two clocks accumulated between two points of time (which is an interval).
+
+TE是绝对error，TIE是intervel内积累的新error.
+
+```
+
+## Constant Versus Dynamic Time Error
+```
+Constant time error (cTE) is the mean of the TE values that have been measured. 
+
+Dynamic time error (dTE) is the variation of TE over a certain time interval (you may remember, the variation of TE is also measured by TIE).
+Additionally, the variation of TE over a longer time period is known as wander, so the dTE is effectively a representation of wander.
+Another way to think about it is that dTE is a measure of the stability of the clock.
+
+These two metrics are very commonly used to define timing performance, so they are important concepts to understand. 
+Normally, dTE is further statistically analyzed using MTIE and TDEV; and the next section details the derivations of those two metrics.
+```
+
+## Maximum Time Interval Error
+```
+TIE是取x(n+k)-x(n)
+但是这两个指（x(n+k)， x(n)）不一定是最大和最小值。
+MTIE是找到这个interval之间的最大值和最小值，取差。
+
+Note also that as the MTIE is the maximum value of delay variation, it is recorded as a real maximum value; 
+not only for one observation interval but for all observation intervals. 
+This means that if a higher value of MTIE is measured for subsequent observation intervals, it is recorded as a new maximum or else the MTIE value remains the same. 
+This in turn means that the MTIE values never decrease over longer and longer observation intervals.
+```
+
+## Time Deviation
+```
+Whereas MTIE shows the largest phase swings for various observation intervals, time deviation (TDEV) provides information about phase stability of a clock signal. 
+TDEV is a metric to measure and characterize the degree of phase variations present in the clock signal, primarily calculated from TIE measurements.
+
+Unlike MTIE, which records the difference between the high and low peaks of phase variations, 
+TDEV primarily focuses on how frequent and how stable (or unstable) such phase variations are occurring over a given time—note the importance of “over a given time.” 
+```
+
+## Noise
+```
+The metrics that are discussed in this chapter try to quantify the noise that a clock can generate at its output. 
+For example, max|TE| represents the maximum amount of noise that can be generated by a clock. Similarly, cTE and dTE also characterize different aspects of the noise of a clock.
+
+Noise is classified as either jitter or wander. As seen in the preceding section “Jitter and Wander,” by convention, jitter is the short-term variation, 
+and wander is the long-term variation of the measured clock compared to the reference clock. 
+The ITU-T G.810 standard defines jitter as phase variation with a rate of change greater than or equal to 10 Hz, 
+whereas it defines wander as phase variation with a rate of change less than 10 Hz. In other words, slower-moving, low-frequency jitter (less than 10 Hz) is called wander.
+
+# Noise Generation
+Noise generation is the amount of jitter and wander that is added to a perfect reference signal at the output of the clock.
+
+# Noise Tolerance
+A slave clock can lock to the input signal from a reference master clock, and yet every clock (even reference clocks) generates some additional noise on its output. 
+As described in the previous section, there are metrics that quantify the noise that is generated by a clock. 
+But how much noise can a slave clock receive (tolerate) on its input and still be able to maintain its output signal within the prescribed performance limits?
+It is simply a measure of how bad an input signal can become before the clock can no longer use it as a reference.
+
+# Noise Transfer
+This propagation of noise from input to output of a node is called noise transfer and can be defined as the noise that is seen at the output 
+of the clock due to the noise that is fed to the input of the clock. 
+The filtering capabilities of the clock determines the amount of noise being transferred through a clock from the input to the output. Obviously, less noise transfer is desirable
+```
+
+## Transient Response
+```
+The question arises, how should the clock behave when an input reference clock is lost and the clock decides to select the second-best clock source as the input reference? 
+The behavior during this event is characterized as the transient response of a clock.
+```
+
 ## 术语
 ```
 同步以太网（SyncE，Synchronous Ethernet）
